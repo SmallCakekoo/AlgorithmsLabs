@@ -9,7 +9,7 @@ import "../pages/ProductDetailPage";
 
 class AppContainer extends HTMLElement {
   private state: State = store.getState();
-  private isCartOpen: boolean = false;
+  private currentPath: string = window.location.pathname;
 
   constructor() {
     super();
@@ -18,12 +18,16 @@ class AppContainer extends HTMLElement {
 
   connectedCallback() {
     store.subscribe(this.handleStateChange.bind(this));
+
+    window.addEventListener("popstate", this.handleRouteChange.bind(this));
+
     this.render();
     this.loadProducts();
   }
 
   disconnectedCallback() {
     store.unsubscribe(this.handleStateChange.bind(this));
+    window.removeEventListener("popstate", this.handleRouteChange.bind(this));
   }
 
   private handleStateChange(state: State) {
@@ -31,16 +35,8 @@ class AppContainer extends HTMLElement {
     this.render();
   }
 
-  private addEventListeners() {
-    // Usar delegación de eventos en el shadowRoot para evitar duplicados
-    this.shadowRoot?.addEventListener(
-      "toggle-cart",
-      this.handleToggleCart.bind(this)
-    );
-  }
-
-  private handleToggleCart() {
-    this.isCartOpen = !this.isCartOpen;
+  private handleRouteChange() {
+    this.currentPath = window.location.pathname;
     this.render();
   }
 
@@ -53,6 +49,7 @@ class AppContainer extends HTMLElement {
     } catch (error) {
       ProductActions.setError("Error al cargar productos");
       ProductActions.setLoading(false);
+      throw error;
     }
   }
 
@@ -113,7 +110,7 @@ class AppContainer extends HTMLElement {
         bottom: 0;
         background-color: rgba(0, 0, 0, 0.5);
         z-index: 10;
-        display: ${this.isCartOpen ? "block" : "none"};
+        display: ${this.state.ui.isCartOpen ? "block" : "none"};
       }
     `;
   }
@@ -125,7 +122,7 @@ class AppContainer extends HTMLElement {
       <style>${this.getStyles()}</style>
       <div class="container">
         <header>
-          <h1>MiTienda</h1>
+          <h1>MiiiTienda</h1>
           <cart-icon></cart-icon>
         </header>
         
@@ -150,16 +147,30 @@ class AppContainer extends HTMLElement {
               : ""
           }
           
-          <home-page></home-page>
+          ${this.renderCurrentPage()}
         </main>
         
-        <div class="overlay"></div>
-        <cart-sidebar ${this.isCartOpen ? "open" : ""}></cart-sidebar>
+        <cart-sidebar ${this.state.ui.isCartOpen ? "open" : ""}></cart-sidebar>
       </div>
     `;
 
-    // Añadir event listeners después de renderizar
-    this.addEventListeners();
+    const backButton = this.shadowRoot.querySelector(".back-button");
+    if (backButton) {
+      backButton.addEventListener("click", (e) => {
+        e.preventDefault();
+        window.history.pushState({}, "", "/");
+        this.handleRouteChange();
+      });
+    }
+  }
+
+  private renderCurrentPage(): string {
+    if (this.currentPath.startsWith("/product/")) {
+      const productId = this.currentPath.split("/").pop();
+      return `<product-detail-page product-id="${productId}"></product-detail-page>`;
+    } else {
+      return `<home-page></home-page>`;
+    }
   }
 }
 

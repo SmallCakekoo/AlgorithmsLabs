@@ -1,3 +1,5 @@
+import { CartActions } from "../../flux/Actions";
+
 class ProductCard extends HTMLElement {
   constructor() {
     super();
@@ -98,7 +100,7 @@ class ProductCard extends HTMLElement {
         background: var(--primary-color, #4c7cff);
         color: white;
         border: none;
-        border-radius: 4px;
+        border-radius: 12px;
         padding: 0.5rem 1rem;
         font-size: 0.9rem;
         cursor: pointer;
@@ -114,13 +116,27 @@ class ProductCard extends HTMLElement {
 
   private addEventListeners() {
     const addToCartBtn = this.shadowRoot?.querySelector(".add-to-cart-btn");
-    addToCartBtn?.addEventListener("click", () => {
-      this.dispatchEvent(
-        new CustomEvent("add-to-cart", {
-          bubbles: true,
-          composed: true,
-        })
-      );
+    addToCartBtn?.addEventListener("click", (e) => {
+      e.stopPropagation();
+
+      const id = parseInt(this.getAttribute("data-id") || "0");
+      const title = this.getAttribute("data-title") || "";
+      const price = parseFloat(this.getAttribute("data-price") || "0");
+      const image = this.getAttribute("data-image") || "";
+      const description = this.getAttribute("data-description") || "";
+      const category = this.getAttribute("data-category") || "";
+
+      const product = { id, title, price, image, description, category };
+      CartActions.addToCart(product, 1);
+    });
+
+    const card = this.shadowRoot?.querySelector(".card");
+    card?.addEventListener("click", () => {
+      const productId = this.getAttribute("data-id");
+      if (productId) {
+        window.history.pushState({}, "", `/product/${productId}`);
+        window.dispatchEvent(new PopStateEvent("popstate"));
+      }
     });
   }
 

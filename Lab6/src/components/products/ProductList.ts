@@ -80,7 +80,6 @@ class ProductList extends HTMLElement {
       </div>
     `;
 
-    // Agregar eventos a los botones después de renderizar
     this.addEventListeners();
   }
 
@@ -97,6 +96,26 @@ class ProductList extends HTMLElement {
           CartActions.addToCart(product, 1);
         }
       });
+
+      card.addEventListener("navigate-to-product", ((
+        e: CustomEvent<{ productId: string }>
+      ) => {
+        const productId = e.detail.productId;
+        if (productId) {
+          const appContainer = document.querySelector("app-container");
+          if (appContainer && appContainer.shadowRoot) {
+            const mainContent =
+              appContainer.shadowRoot.querySelector(".main-content");
+            if (mainContent) {
+              mainContent.innerHTML = "";
+
+              const detailPage = document.createElement("product-detail-page");
+              detailPage.setAttribute("product-id", productId);
+              mainContent.appendChild(detailPage);
+            }
+          }
+        }
+      }) as EventListener);
     });
   }
 }

@@ -51,7 +51,7 @@ class HomePage extends HTMLElement {
       <style>${this.getStyles()}</style>
       
       <div class="hero">
-        <h2>Bienvenido a MiTienda</h2>
+        <h2>Bienvenido a MiiiTienda</h2>
         <p>Descubre nuestra selección de productos de alta calidad a los mejores precios.</p>
       </div>
       

@@ -1,5 +1,5 @@
 import { AppDispatcher } from "./Dispatcher";
-import { Product, CartItem } from "../types/ProductTypes";
+import { Product } from "../types/ProductTypes";
 
 export const CounterActionTypes = {
   INCREMENT_COUNT: "INCREMENT_COUNT",
@@ -21,6 +21,17 @@ export const CartActionTypes = {
   REMOVE_FROM_CART: "REMOVE_FROM_CART",
   UPDATE_QUANTITY: "UPDATE_QUANTITY",
   CLEAR_CART: "CLEAR_CART",
+};
+
+export const UIActionTypes = {
+  TOGGLE_CART: "TOGGLE_CART",
+  TOGGLE_CHECKOUT: "TOGGLE_CHECKOUT",
+};
+
+export const CacheActionTypes = {
+  SAVE_TO_CACHE: "SAVE_TO_CACHE",
+  LOAD_FROM_CACHE: "LOAD_FROM_CACHE",
+  CLEAR_CACHE: "CLEAR_CACHE",
 };
 
 export const CounterActions = {
@@ -96,6 +107,45 @@ export const CartActions = {
     AppDispatcher.dispatch({
       type: CartActionTypes.CLEAR_CART,
       payload: null,
+    });
+  },
+};
+
+export const UIActions = {
+  toggleCart: () => {
+    AppDispatcher.dispatch({
+      type: UIActionTypes.TOGGLE_CART,
+      payload: null,
+    });
+  },
+
+  toggleCheckout: () => {
+    AppDispatcher.dispatch({
+      type: UIActionTypes.TOGGLE_CHECKOUT,
+      payload: null,
+    });
+  },
+};
+
+export const CacheActions = {
+  saveToCache: (key: string, data: unknown) => {
+    AppDispatcher.dispatch({
+      type: CacheActionTypes.SAVE_TO_CACHE,
+      payload: { key, data },
+    });
+  },
+
+  loadFromCache: (key: string) => {
+    AppDispatcher.dispatch({
+      type: CacheActionTypes.LOAD_FROM_CACHE,
+      payload: key,
+    });
+  },
+
+  clearCache: (key?: string) => {
+    AppDispatcher.dispatch({
+      type: CacheActionTypes.CLEAR_CACHE,
+      payload: key,
     });
   },
 };

@@ -1,15 +1,10 @@
 import { store, State } from "../../flux/Store";
-import { CartActions } from "../../flux/Actions";
+import { CartActions, UIActions } from "../../flux/Actions";
 import { CartItem } from "../../types/ProductTypes";
 import "./CheckoutForm";
 
 class CartSidebar extends HTMLElement {
   private state: State = store.getState();
-  private isCheckoutOpen: boolean = false;
-
-  static get observedAttributes() {
-    return ["open"];
-  }
 
   constructor() {
     super();
@@ -25,19 +20,13 @@ class CartSidebar extends HTMLElement {
     store.unsubscribe(this.handleStateChange.bind(this));
   }
 
-  attributeChangedCallback(name: string, oldValue: string, newValue: string) {
-    if (name === "open" && this.isConnected && oldValue !== newValue) {
-      this.render();
-    }
-  }
-
   private handleStateChange(state: State) {
     this.state = state;
     this.render();
   }
 
   private isOpen(): boolean {
-    return this.hasAttribute("open");
+    return this.state.ui.isCartOpen;
   }
 
   private getCartTotal(): number {
@@ -48,7 +37,7 @@ class CartSidebar extends HTMLElement {
   }
 
   private handleClose = () => {
-    this.removeAttribute("open");
+    UIActions.toggleCart();
   };
 
   private handleQuantityChange = (id: number, action: string) => {
@@ -71,13 +60,11 @@ class CartSidebar extends HTMLElement {
   };
 
   private handleCheckout = () => {
-    this.isCheckoutOpen = true;
-    this.render();
+    UIActions.toggleCheckout();
   };
 
-  private handleCheckoutClose = () => {
-    this.isCheckoutOpen = false;
-    this.render();
+  private handleClearCart = () => {
+    CartActions.clearCart();
   };
 
   private getStyles() {
@@ -96,6 +83,8 @@ class CartSidebar extends HTMLElement {
         opacity: ${this.isOpen() ? "1" : "0"};
         visibility: ${this.isOpen() ? "visible" : "hidden"};
         z-index: 99;
+        pointer-events: ${this.isOpen() ? "auto" : "none"};
+        transition: opacity 0.3s, visibility 0.3s;
       }
       
       .sidebar {
@@ -124,6 +113,16 @@ class CartSidebar extends HTMLElement {
       .sidebar-title {
         margin: 0;
         font-size: 1.2rem;
+      }
+      
+      .close-btn {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        padding: 0;
+        line-height: 1;
+        color: #666;
       }
       
       .cart-items {
@@ -214,7 +213,7 @@ class CartSidebar extends HTMLElement {
         width: 100%;
         padding: 0.75rem;
         border: none;
-        border-radius: 4px;
+        border-radius: 10px;
         font-weight: 600;
         cursor: pointer;
         margin-bottom: 0.5rem;
@@ -246,51 +245,93 @@ class CartSidebar extends HTMLElement {
   render() {
     if (!this.shadowRoot) return;
 
-    const cartItems = this.state.cart;
-    const total = this.getCartTotal();
-
     this.shadowRoot.innerHTML = `
       <style>${this.getStyles()}</style>
-      <div class="overlay" onclick="this.getRootNode().host.handleClose()"></div>
-      <aside class="sidebar">
+      
+      <div class="overlay" @click="${this.handleClose}"></div>
+      
+      <div class="sidebar">
         <div class="sidebar-header">
-          <h3 class="sidebar-title">Tu carrito</h3>
+          <h3 class="sidebar-title">Tu Carrito</h3>
+          <button class="close-btn" aria-label="Cerrar carrito">&times;</button>
         </div>
         
         <div class="cart-items">
           ${
-            cartItems.length === 0
+            this.state.cart.length === 0
               ? `
             <div class="empty-cart">
               <p>Tu carrito está vacío</p>
+              <p>Agrega productos para ver aquí</p>
             </div>
           `
-              : cartItems.map((item) => this.renderCartItem(item)).join("")
+              : this.state.cart
+                  .map((item) => this.renderCartItem(item))
+                  .join("")
           }
         </div>
         
         <div class="sidebar-footer">
-          <div class="cart-total">
-            <span>Total:</span>
-            <span>$${total.toFixed(2)}</span>
-          </div>
-          
-          <button class="btn checkout-btn" ${
-            cartItems.length === 0 ? "disabled" : ""
-          } onclick="this.getRootNode().host.handleCheckout()">
-            Finalizar compra
-          </button>
-          
-          <button class="btn clear-cart-btn" ${
-            cartItems.length === 0 ? "disabled" : ""
-          } onclick="CartActions.clearCart()">
-            Vaciar carrito
-          </button>
+          ${
+            this.state.cart.length === 0
+              ? ""
+              : `
+            <div class="cart-total">
+              <span>Total:</span>
+              <span>$${this.getCartTotal().toFixed(2)}</span>
+            </div>
+            
+            <button class="btn checkout-btn">
+              Proceder al Pago
+            </button>
+            
+            <button class="btn clear-cart-btn">
+              Vaciar Carrito
+            </button>
+          `
+          }
         </div>
-      </aside>
+      </div>
       
-      ${this.isCheckoutOpen ? `<checkout-form></checkout-form>` : ""}
+      ${this.state.ui.isCheckoutOpen ? `<checkout-form></checkout-form>` : ""}
     `;
+
+    if (this.state.cart.length > 0) {
+      const checkoutBtn = this.shadowRoot.querySelector(".checkout-btn");
+      checkoutBtn?.addEventListener("click", this.handleCheckout);
+
+      const clearCartBtn = this.shadowRoot.querySelector(".clear-cart-btn");
+      clearCartBtn?.addEventListener("click", this.handleClearCart);
+    }
+
+    this.state.cart.forEach((item) => {
+      const increaseBtn = this.shadowRoot?.querySelector(
+        `.quantity-increase[data-id="${item.id}"]`
+      );
+      increaseBtn?.addEventListener("click", () =>
+        this.handleQuantityChange(item.id, "increase")
+      );
+
+      const decreaseBtn = this.shadowRoot?.querySelector(
+        `.quantity-decrease[data-id="${item.id}"]`
+      );
+      decreaseBtn?.addEventListener("click", () =>
+        this.handleQuantityChange(item.id, "decrease")
+      );
+
+      const removeBtn = this.shadowRoot?.querySelector(
+        `.remove-btn[data-id="${item.id}"]`
+      );
+      removeBtn?.addEventListener("click", () =>
+        this.handleRemoveItem(item.id)
+      );
+    });
+
+    const closeBtn = this.shadowRoot.querySelector(".close-btn");
+    closeBtn?.addEventListener("click", this.handleClose);
+
+    const overlay = this.shadowRoot.querySelector(".overlay");
+    overlay?.addEventListener("click", this.handleClose);
   }
 
   private renderCartItem(item: CartItem): string {

@@ -75,13 +75,13 @@ class ProductDetailPage extends HTMLElement {
     const quantityInput = this.shadowRoot?.querySelector(
       "#quantity"
     ) as HTMLInputElement;
+    const backButton = this.shadowRoot?.querySelector(".back-button");
 
     addToCartBtn?.addEventListener("click", () => {
       if (this.product) {
         const quantity = parseInt(quantityInput?.value || "1");
         CartActions.addToCart(this.product, quantity);
 
-        // Muestra un mensaje de confirmación
         const message = this.shadowRoot?.querySelector(".success-message");
         if (message) {
           message.classList.add("visible");
@@ -90,6 +90,12 @@ class ProductDetailPage extends HTMLElement {
           }, 2000);
         }
       }
+    });
+
+    backButton?.addEventListener("click", (e) => {
+      e.preventDefault();
+      window.history.pushState({}, "", "/");
+      window.dispatchEvent(new PopStateEvent("popstate"));
     });
   }
 
@@ -209,6 +215,7 @@ class ProductDetailPage extends HTMLElement {
         color: var(--text-color, #333);
         text-decoration: none;
         font-weight: 600;
+        cursor: pointer;
       }
       
       .back-button:hover {
@@ -237,7 +244,7 @@ class ProductDetailPage extends HTMLElement {
     this.shadowRoot.innerHTML = `
       <style>${this.getStyles()}</style>
       
-      <a href="#" class="back-button">← Volver a la tienda</a>
+      <a class="back-button">← Volver a la tienda</a>
       
       ${
         this.isLoading

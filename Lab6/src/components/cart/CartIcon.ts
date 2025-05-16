@@ -1,4 +1,5 @@
 import { store, State } from "../../flux/Store";
+import { UIActions } from "../../flux/Actions";
 
 class CartIcon extends HTMLElement {
   private state: State = store.getState();
@@ -30,12 +31,7 @@ class CartIcon extends HTMLElement {
   private addEventListeners() {
     const button = this.shadowRoot?.querySelector(".cart-button");
     button?.addEventListener("click", () => {
-      this.dispatchEvent(
-        new CustomEvent("toggle-cart", {
-          bubbles: true,
-          composed: true,
-        })
-      );
+      UIActions.toggleCart();
     });
   }
 
