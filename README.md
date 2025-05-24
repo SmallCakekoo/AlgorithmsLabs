@@ -1,4 +1,5 @@
 # Laboratorios de despliegue
 
 Netlify:
-Fibase Hosting:
+
+Fibase Hosting: https://lab8-70fde.web.app/
