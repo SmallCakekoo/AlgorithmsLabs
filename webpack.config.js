@@ -36,7 +36,7 @@ export default {
         // Nombre del archivo de salida
         filename: 'bundle.js',
         // Ruta del directorio de salida, resuelta a partir del directorio actual
-        path: path.resolve(__dirname, 'dist'),
+        path: path.resolve(__dirname, 'public/dist'),
     },
     devServer: {
         port: 8082,
