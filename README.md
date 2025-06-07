@@ -11,7 +11,7 @@ Este repositorio contiene múltiples laboratorios, cada uno ubicado en una rama 
 - **`Laboratorio5`**: Uso de Flux, API REST y Web Components (Consumí la de Valorant again).
 - **`Laboratorio6`**: Ecomerce con una API REST con Web Components (Consumí la FakeStoreApi).
 - **`Laboratorio7`**: Gestor Personal de Tareas con Firebase.
-- **`Laboratorio8`**: MemeWall con despliege en Firebase y Netlify(continuo).
+- **`Laboratorio8`**: MemeWall con despliege en Firebase y Netlify (Este último continuo).
 
 ## Cómo Iniciar un Proyecto
 
