@@ -1,4 +1,4 @@
-# Laboratorios de despliegue
+# Laboratorio de despliegue - MemeWall
 
 Netlify: https://lab8galeriadememes.netlify.app/
 
